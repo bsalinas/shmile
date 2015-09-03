@@ -14,6 +14,8 @@ class CameraControl
   received_regex: /Capturing image/g
   saving_regex: /Saving image to ([^.jpg]+)/g
   captured_success_regex: /Saving image to ([^.jpg]+)/g
+  gphoto2_saving_regex: /Saving file as ([^.jpg]+)/g
+  gphoto2_captured_success_regex: /New file is in/g
 
   constructor: (
     @filename="%m-%y-%d_%H:%M:%S.jpg",
@@ -68,10 +70,10 @@ class CameraControl
         cwd: @cwd
       )
       gphoto2_capture.stdout.on "data", (data) =>
-        if @captured_success_regex.exec(data.toString())
+        if @gphoto2_captured_success_regex.exec(data.toString())
           emitter.emit "camera_snapped"
 
-        saving = @saving_regex.exec(data.toString())
+        saving = @gphoto2_saving_regex.exec(data.toString())
         if saving
           fname = saving[1] + ".jpg"
           gphoto2_finished = {
