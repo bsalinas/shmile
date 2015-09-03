@@ -54,7 +54,7 @@ class ImageCompositor
           convertArgs.push "-composite"
       convertArgs.push @img_src_list[3][0]['path']
       convertArgs.push "-geometry"
-      convertArgs.push [BIG_IMAGE_GEOMETRY + "+" + BI_IMAGE_POSITION.x + "+" + BI_IMAGE_POSITION.y]
+      convertArgs.push [BIG_IMAGE_GEOMETRY + "+" + BIG_IMAGE_POSITION.x + "+" + BIG_IMAGE_POSITION.y]
       convertArgs.push "-composite"
       convertArgs.push OUTPUT_PATH
 
@@ -70,7 +70,7 @@ class ImageCompositor
       )
 
       doCompositing = =>
-        compositeArgs = [ "-gravity", "center", @opts.overlay_src, OUTPUT_PATH, "-geometry", TOTAL_WIDTH + "x" + TOTAL_HEIGHT, FINAL_OUTPUT_PATH ]
+        compositeArgs = [ "-gravity", "center", OUTPUT_PATH, @opts.overlay_src, "-geometry", TOTAL_WIDTH + "x" + TOTAL_HEIGHT, FINAL_OUTPUT_PATH ]
         console.log("executing: composite " + compositeArgs.join(" "))
         exec "composite " + compositeArgs.join(" "), (error, stderr, stdout) ->
           throw error  if error
