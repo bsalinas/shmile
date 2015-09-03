@@ -19,6 +19,6 @@
     "tests"
   ],
   "dependencies": {
-    "shmile-ui": "andrewhao/shmile-ui"
+    "shmile-ui": "bsalinas/shmile-ui"
   }
 }

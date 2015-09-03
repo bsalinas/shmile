@@ -16,44 +16,71 @@ class CameraControl
   captured_success_regex: /Saving image to ([^.jpg]+)/g
 
   constructor: (
+    @filename="%m-%y-%d_%H:%M:%S.jpg",
     @cwd="public/photos",
     @web_root_path="/photos") ->
 
   init: ->
     exec "killall capture"
+    exec "killall PTPCamera"
     ids_capture = spawn("capture",["4567"],
       cwd:@cwd
     )
-    in_capture = false
+    in_ids_capture = false
+    ids_finished = false
+    gphoto2_finished = false
 
     ids_capture.stdout.on "data", (data) =>
       console.log("ids:"+data.toString())
     ids_capture.stderr.on "data", (data) =>
       console.log(data.toString())
-      if @received_regex.exec(data.toString())
-        if in_capture
-          emitter.emit "camera_snapped"
-          onCaptureSuccess() if onCaptureSuccess?
-        else
-          console.log("incorrect sequence for received")
+      #if @received_regex.exec(data.toString())
+        #if in_ids_capture
+        #  emitter.emit "camera_snapped"
+        #else
+        #  console.log("incorrect sequence for received")
       saving = @saving_regex.exec(data.toString())
       if saving
-        if in_capture
+        if in_ids_capture
           fname = saving[1] + ".jpg"
-          emitter.emit(
-            "photo_saved",
-            fname,
-            @cwd + "/" + fname,
-            @web_root_path + "/" + fname
-          )
-          onSaveSuccess() if onSaveSuccess?
+          ids_finished = {
+            filename:fname,
+            path: @cwd + "/" + fname,
+            web_url: @web_root_path + "/" + fname
+          }
+          if gphoto2_finished
+            emitter.emit("photo_saved", [gphoto2_finished,ids_finished])
+          in_ids_capture = false
 
     requester.connect('tcp://localhost:4567');
     emitter = new EventEmitter()
-    emitter.on "snap", (onCaptureSuccess, onSaveSuccess) =>
-      in_capture = true
+    emitter.on "snap", () =>
+      in_ids_capture = true
+      ids_finished = false
+      gphoto2_finished = false
       emitter.emit "camera_begin_snap"
-      filename = (new Date()).getTime() 
-      requester.send("test_"+filename+'.jpg');
+      ids_filename = (new Date()).getTime() 
+      requester.send("espresso_"+ids_filename+'.jpg');
+
+      gphoto2_capture = spawn("gphoto2", [ "--capture-image-and-download",
+                                   "--force-overwrite",
+                                   "--filename=" + @filename ],
+        cwd: @cwd
+      )
+      gphoto2_capture.stdout.on "data", (data) =>
+        if @captured_success_regex.exec(data.toString())
+          emitter.emit "camera_snapped"
+
+        saving = @saving_regex.exec(data.toString())
+        if saving
+          fname = saving[1] + ".jpg"
+          gphoto2_finished = {
+            filename:fname,
+            path: @cwd + "/" + fname,
+            web_url: @web_root_path + "/" + fname
+          }
+          if ids_finished
+            emitter.emit("photo_saved", [gphoto2_finished,ids_finished])
+
 
 module.exports = CameraControl

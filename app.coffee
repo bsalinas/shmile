@@ -57,11 +57,9 @@ io.sockets.on "connection", (websocket) ->
   camera.on "camera_snapped", ->
     websocket.emit "camera_snapped"
 
-  camera.on "photo_saved", (filename, path, web_url) ->
+  camera.on "photo_saved", (filename, images_list) ->
     websocket.emit "photo_saved",
-      filename: filename
-      path: path
-      web_url: web_url
+      images_list
 
   websocket.on "snap", () ->
     camera.emit "snap"
