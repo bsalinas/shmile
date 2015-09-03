@@ -45,6 +45,7 @@ class CameraControl
       if saving
         if in_ids_capture
           fname = saving[1] + ".jpg"
+          console.log(saving)
           ids_finished = {
             filename:fname,
             path: @cwd + "/" + fname,
@@ -62,9 +63,9 @@ class CameraControl
       gphoto2_finished = false
       emitter.emit "camera_begin_snap"
       ids_filename = (new Date()).getTime() 
-      requester.send("espresso_"+ids_filename+'.jpg');
+      requester.send("coffee_"+ids_filename+'.jpg');
 
-      gphoto2_capture = spawn("gphoto2", [ "--capture-image-and-download",
+      gphoto2_capture = spawn("/usr/bin/gphoto2", [ "--capture-image-and-download",
                                    "--force-overwrite",
                                    "--filename=" + @filename ],
         cwd: @cwd
@@ -76,12 +77,10 @@ class CameraControl
         saving = @gphoto2_saving_regex.exec(data.toString())
         if saving
           fname = saving[1] + ".jpg"
-          gphoto2_finished = {
-            filename:fname,
-            path: @cwd + "/" + fname,
+          gphoto2_finished =
+            filename:fname
+            path: @cwd + "/" + fname
             web_url: @web_root_path + "/" + fname
-          }
-          console.log(gphoto2_finished)
           if ids_finished
             emitter.emit("photo_saved", [gphoto2_finished,ids_finished])
 

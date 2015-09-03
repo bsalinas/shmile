@@ -44,7 +44,7 @@ class ImageCompositor
 
       for i in [0..@img_src_list.length-1] by 1
         for j in [0..2] by 1
-          convertArgs.push @img_src_list[i][1].path
+          convertArgs.push @img_src_list[i][j]['path']
           convertArgs.push "-geometry"
           convertArgs.push [SMALL_IMAGE_GEOMETRY + "+" + SIDE_IMAGE_POSITIONS[i][j].x + "+" + SIDE_IMAGE_POSITIONS[i][j].y]
           convertArgs.push "-composite"
