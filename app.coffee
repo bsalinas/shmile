@@ -43,8 +43,8 @@ State = image_src_list: []
 ccKlass = if process.env['STUB_CAMERA'] is "true" then StubCameraControl else CameraControl
 camera = new ccKlass().init()
 
-camera.on "photo_saved", (filename, path, web_url) ->
-    State.image_src_list.push path
+camera.on "photo_saved", (images) ->
+    State.image_src_list.push images
 
 io = require("socket.io").listen(web)
 web.listen 3000

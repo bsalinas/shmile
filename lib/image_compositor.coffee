@@ -34,7 +34,7 @@ class ImageCompositor
       GEOMETRIES = [ IMAGE_GEOMETRY + "+" + IMAGE_PADDING + "+" + IMAGE_PADDING, IMAGE_GEOMETRY + "+" + (2 * IMAGE_PADDING + IMAGE_WIDTH) + "+" + IMAGE_PADDING, IMAGE_GEOMETRY + "+" + IMAGE_PADDING + "+" + (IMAGE_HEIGHT + 2 * IMAGE_PADDING), IMAGE_GEOMETRY + "+" + (2 * IMAGE_PADDING + IMAGE_WIDTH) + "+" + (2 * IMAGE_PADDING + IMAGE_HEIGHT) ]
 
       for i in [0..@img_src_list.length-1] by 1
-        convertArgs.push @img_src_list[i]
+        convertArgs.push @img_src_list[i][1]
         convertArgs.push "-geometry"
         convertArgs.push GEOMETRIES[i]
         convertArgs.push "-composite"

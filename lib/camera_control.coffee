@@ -81,6 +81,7 @@ class CameraControl
             path: @cwd + "/" + fname,
             web_url: @web_root_path + "/" + fname
           }
+          console.log(gphoto2_finished)
           if ids_finished
             emitter.emit("photo_saved", [gphoto2_finished,ids_finished])
 
