@@ -1,7 +1,8 @@
 EventEmitter = require("events").EventEmitter
 spawn = require("child_process").spawn
 exec = require("child_process").exec
-
+zmq       = require('zmq')
+requester = zmq.socket('req')
 ###
 # Interface to gphoto2 via the command line.
 #
@@ -10,31 +11,34 @@ exec = require("child_process").exec
 # guest...
 ###
 class CameraControl
-  saving_regex: /Saving file as ([^.jpg]+)/g
-  captured_success_regex: /New file is in/g
+  received_regex: /Capturing image/g
+  saving_regex: /Saving image to ([^.jpg]+)/g
+  captured_success_regex: /Saving image to ([^.jpg]+)/g
 
   constructor: (
-    @filename="%m-%y-%d_%H:%M:%S.jpg",
     @cwd="public/photos",
     @web_root_path="/photos") ->
 
   init: ->
-    exec "killall PTPCamera"
-    emitter = new EventEmitter()
-    emitter.on "snap", (onCaptureSuccess, onSaveSuccess) =>
-      emitter.emit "camera_begin_snap"
-      capture = spawn("gphoto2", [ "--capture-image-and-download",
-                                   "--force-overwrite",
-                                   "--filename=" + @filename ],
-        cwd: @cwd
-      )
-      capture.stdout.on "data", (data) =>
-        if @captured_success_regex.exec(data.toString())
+    exec "killall capture"
+    ids_capture = spawn("capture",["4567"],
+      cwd:@cwd
+    )
+    in_capture = false
+
+    ids_capture.stdout.on "data", (data) =>
+      console.log("ids:"+data.toString())
+    ids_capture.stderr.on "data", (data) =>
+      console.log(data.toString())
+      if @received_regex.exec(data.toString())
+        if in_capture
           emitter.emit "camera_snapped"
           onCaptureSuccess() if onCaptureSuccess?
-
-        saving = @saving_regex.exec(data.toString())
-        if saving
+        else
+          console.log("incorrect sequence for received")
+      saving = @saving_regex.exec(data.toString())
+      if saving
+        if in_capture
           fname = saving[1] + ".jpg"
           emitter.emit(
             "photo_saved",
@@ -43,6 +47,13 @@ class CameraControl
             @web_root_path + "/" + fname
           )
           onSaveSuccess() if onSaveSuccess?
-    emitter
+
+    requester.connect('tcp://localhost:4567');
+    emitter = new EventEmitter()
+    emitter.on "snap", (onCaptureSuccess, onSaveSuccess) =>
+      in_capture = true
+      emitter.emit "camera_begin_snap"
+      filename = (new Date()).getTime() 
+      requester.send("test_"+filename+'.jpg');
 
 module.exports = CameraControl
