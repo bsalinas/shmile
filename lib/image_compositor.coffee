@@ -3,6 +3,14 @@ exec = require("child_process").exec
 fs = require("fs")
 EventEmitter = require("events").EventEmitter
 
+SIDE_IMAGE_POSITIONS = [
+  [{x:5,y:37},{x:2545,y:37}],
+  [{x:5,y:465},{x:2545,y:465}],
+  [{x:5,y:893},{x:2545,y:893}],
+  [{x:5,y:1321},{x:2545,y:1321}]
+]
+SMALL_IMAGE_HEIGHT = 392
+SMALL_IMAGE_WIDTH = 588
 IMAGE_HEIGHT = 800
 IMAGE_WIDTH = 1200
 IMAGE_PADDING = 50
@@ -27,6 +35,7 @@ class ImageCompositor
       convertArgs = [ "-size", TOTAL_WIDTH + "x" + TOTAL_HEIGHT, "canvas:white" ]
       utcSeconds = (new Date()).valueOf()
       IMAGE_GEOMETRY = "#{IMAGE_WIDTH}x#{IMAGE_HEIGHT}"
+      SMALL_IMAGE_GEOMETRY = "#{SMALL_IMAGE_WIDTH}x#{SMALL_IMAGE_HEIGHT}"
       OUTPUT_PATH = "#{@opts.tmp_dir}/out.jpg"
       OUTPUT_FILE_NAME = "#{utcSeconds}.jpg"
       FINAL_OUTPUT_PATH = "#{@opts.output_dir}/gen_#{OUTPUT_FILE_NAME}"
@@ -34,10 +43,11 @@ class ImageCompositor
       GEOMETRIES = [ IMAGE_GEOMETRY + "+" + IMAGE_PADDING + "+" + IMAGE_PADDING, IMAGE_GEOMETRY + "+" + (2 * IMAGE_PADDING + IMAGE_WIDTH) + "+" + IMAGE_PADDING, IMAGE_GEOMETRY + "+" + IMAGE_PADDING + "+" + (IMAGE_HEIGHT + 2 * IMAGE_PADDING), IMAGE_GEOMETRY + "+" + (2 * IMAGE_PADDING + IMAGE_WIDTH) + "+" + (2 * IMAGE_PADDING + IMAGE_HEIGHT) ]
 
       for i in [0..@img_src_list.length-1] by 1
-        convertArgs.push @img_src_list[i][1]
-        convertArgs.push "-geometry"
-        convertArgs.push GEOMETRIES[i]
-        convertArgs.push "-composite"
+        for j in [0..2] by 1
+          convertArgs.push @img_src_list[i][1].path
+          convertArgs.push "-geometry"
+          convertArgs.push [SMALL_IMAGE_GEOMETRY + "+" + SIDE_IMAGE_POSITIONS[i][j].x + "+" + SIDE_IMAGE_POSITIONS[i][j].y]
+          convertArgs.push "-composite"
       convertArgs.push OUTPUT_PATH
 
       console.log("executing: convert #{convertArgs.join(" ")}")
